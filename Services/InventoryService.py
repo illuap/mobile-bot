@@ -3,6 +3,7 @@ import time
 import cv2
 import numpy as np
 import pyautogui
+from pytesseract import pytesseract
 
 import Logger
 from engine.PreImageProcessor import GetInventoryOptionTextImg
@@ -124,6 +125,49 @@ def ClickByImageMatch_yes_grind():
 def CheckByImageMatch_end_of_inventory():
     CheckByImageMatch("buttons\\empty_item.png")
 
+def HighlightEachItem(items):
+    # Get item stats
+    for i, item in enumerate(items):
+        pyautogui.mouseDown(item.x, item.y, button='left')
+        time.sleep(0.4)
+        inventoryImg = applicationGrabber.get_image()
+        items[i].stats_img = GetInventoryOptionTextImg(inventoryImg) #optimize the image to store?
+        pyautogui.mouseUp(item.x, item.y, button='left')
+
+def CheckEachItemStatsUsingCompVision(items):
+    # Find and Send Text
+    for i, item in enumerate(items):
+        img = item.stats_img
+
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        ret, threshold1 = cv2.threshold(img, 130, 130, cv2.THRESH_BINARY)
+
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (40, 10))
+        closed = cv2.morphologyEx(threshold1, cv2.MORPH_CLOSE, kernel)
+        closed = cv2.erode(closed, kernel, iterations=1)  # remove any noise
+        closed = cv2.dilate(closed, kernel, iterations=2)  # thickens
+
+        ctrs, hier = cv2.findContours(closed.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+        txt = []
+        for cnt in ctrs:
+            x, y, w, h = cv2.boundingRect(cnt)
+            roi = img[y - 5:y + h, x:x + w]
+            #cv2.imshow("asdasdasd2", roi)
+            #cv2.waitKey(0)
+            txt.append(pytesseract.image_to_string(roi))
+        items[i].stats_text_arr = txt
+def ClickUselessItems(items):
+    # Highlight all the useless ones
+    counter = 0
+    for item in items:
+        if(not item.IsItemUseful()):
+            time.sleep(0.25)
+            counter = counter + 1
+            pyautogui.click(item.x, item.y)
+            Logger.log("clicked item")
+
+    return counter
+
 # ==============================================================
 #                   Business Specific
 # ==============================================================
@@ -140,6 +184,7 @@ def FilterIventoryBySwiftDarkGear():
     ClickByImageMatch_ok_filter()
     time.sleep(0.05)
     ScrollToTopOfInventory()
+    time.sleep(0.2)
 
 def GetItemsOnScreenFromTemplates(imgs):
     items = []
@@ -156,31 +201,62 @@ def GetItemsOnScreenFromTemplates(imgs):
         threshold = 0.92
         loc = np.where(res >= threshold)
         for pt in zip(*loc[::-1]):
-            cv2.rectangle(inventoryImg, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
+            #cv2.rectangle(inventoryImg, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
 
             # sanity check. (see if the previous is very close to the current one)
             exists = False
-            for item in items:
-                if (abs(item.x - pt[0]) < 10 and abs(item.y - pt[1]) < 10):
-                    exists = True
-                    break
+            if(len(items) > 0):
+                for item in items:
+                    if (abs(item.x - pt[0]) < 10 and abs(item.y - pt[1]) < 10):
+                        exists = True
+                        break
             if (not exists):
                 items.append(Item(pt[0], pt[1]))
 
+    return items
     # cv2.imshow("asdasdasd", inventoryImg)
     # cv2.waitKey(0)
+def SetItemsInfo(items):
+    HighlightEachItem(items)
+    CheckEachItemStatsUsingCompVision(items)
+def GrindUselessItems(items):
+    ClickByImageMatch_grind()
 
-def HighlightEachItem(items):
-    # Get item stats
-    for item in items:
+    # Highlight all the useless ones
+    usefulItemCount = ClickUselessItems(items)
+
+    if(usefulItemCount > 0):
+        # find and click 'start to grind'
+        ClickByImageMatch_start_to_grind()
+
+
+
+# HighlightEachItem + CheckEachItemStats combined for more optimization
+# NOT USED FOR SIMPLICITY
+def GetOptionsFromItemCords(items):
+    # Find and Send Text
+    for i, item in enumerate(items):
         pyautogui.mouseDown(item.x, item.y, button='left')
         time.sleep(0.4)
         inventoryImg = applicationGrabber.get_image()
-        item.stats_img = GetInventoryOptionTextImg(inventoryImg)
+        img = GetInventoryOptionTextImg(inventoryImg)
         pyautogui.mouseUp(item.x, item.y, button='left')
-        #cv2.imshow("asdasdasd2", item.stats_img)
-        #cv2.waitKey(0)
+        #img = item.stats_img
 
-    #cv2.imshow("asdasdasd2", cv2.cvtColor(items[0].stats_img, cv2.COLOR_BGR2RGB))
-    #cv2.imwrite("item_stats.png", cv2.cvtColor(items[0].stats_img, cv2.COLOR_BGR2GRAY))
-    #cv2.waitKey(0)
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        ret, threshold1 = cv2.threshold(img, 130, 130, cv2.THRESH_BINARY)
+
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (40, 10))
+        closed = cv2.morphologyEx(threshold1, cv2.MORPH_CLOSE, kernel)
+        closed = cv2.erode(closed, kernel, iterations=1)  # remove any noise
+        closed = cv2.dilate(closed, kernel, iterations=2)  # thickens
+
+        ctrs, hier = cv2.findContours(closed.copy(), cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+        txt = []
+        for cnt in ctrs:
+            x, y, w, h = cv2.boundingRect(cnt)
+            roi = img[y - 5:y + h, x:x + w]
+            #cv2.imshow("asdasdasd2", roi)
+            #cv2.waitKey(0)
+            txt.append(pytesseract.image_to_string(roi))
+        item.stats_text_arr = txt
