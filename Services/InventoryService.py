@@ -48,7 +48,7 @@ def GetPosByImageMatch(imageName):
 def CheckByImageMatch(imageName):
     pos = GetPosByImageMatch(imageName)
 
-    if(pos == None):
+    if(pos == None or len(pos) == 0 or len(pos[0]) == 0):
         Logger.log("Couldn't find Image {}.".format(imageName))
         return False
     else:
@@ -123,7 +123,7 @@ def ClickByImageMatch_yes_grind():
     ClickByImageMatch("buttons\\yes_grind.png")
 
 def CheckByImageMatch_end_of_inventory():
-    CheckByImageMatch("buttons\\empty_item.png")
+    return CheckByImageMatch("empty_item.png")
 
 def HighlightEachItem(items):
     # Get item stats
@@ -160,7 +160,7 @@ def ClickUselessItems(items):
     # Highlight all the useless ones
     counter = 0
     for item in items:
-        if(not item.IsItemUseful()):
+        if(not item.IsUseful()):
             time.sleep(0.25)
             counter = counter + 1
             pyautogui.click(item.x, item.y)
@@ -184,7 +184,7 @@ def FilterIventoryBySwiftDarkGear():
     ClickByImageMatch_ok_filter()
     time.sleep(0.05)
     ScrollToTopOfInventory()
-    time.sleep(0.2)
+    time.sleep(0.5)
 
 def GetItemsOnScreenFromTemplates(imgs):
     items = []

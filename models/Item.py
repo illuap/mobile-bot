@@ -64,7 +64,18 @@ class Item:
                 result = result + key + ", "
         return result
 
-    def IsItemUseful(self):
+    def IsError(self):
+        dic = self.GenerateStatsDictionary()
+        self.GetStats()
+        print("------------------------------------")
+        print("[IsItemUseful] Checking : {}".format(self.GetStats()))
+        if (self.option_dictionary["ERROR"] > 0):
+            Item.Error_Counter = Item.Error_Counter + 1
+            print("[IsItemUseful] Found an error.... {} ".format(Item.Error_Counter))
+            return True
+        return False
+
+    def IsUseful(self):
         dic = self.GenerateStatsDictionary()
         self.GetStats()
         print("------------------------------------")

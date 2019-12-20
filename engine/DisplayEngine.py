@@ -1,3 +1,4 @@
+import cv2
 import pywintypes
 import win32api
 import win32con
@@ -41,6 +42,19 @@ def display_text(display_text, x = 0,y = 0):
 
     label.pack()
     label.mainloop()
+
+
+def display_dots_on_img(img,cords,colour):
+    temp = img.copy()
+    for c in cords:
+        cv2.circle(temp, (c[0], c[1]), 5, colour, 3)
+    return temp
+
+def display_msg(img,cords,msg,colour=(0,0,255)):
+    temp = img.copy()
+    for c in cords:
+        cv2.putText(temp,msg, (c[0],c[1]), cv2.FONT_HERSHEY_SIMPLEX, 1, colour,3,cv2.LINE_AA)
+    return temp
 
 
 class DisplayEngine:

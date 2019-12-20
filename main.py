@@ -3,6 +3,7 @@ import math
 import time
 
 import cv2
+import eel
 import numpy as np
 import pyautogui
 from PIL import Image
@@ -11,6 +12,7 @@ from pytesseract import pytesseract
 from const.Colour import Colour
 from engine import DisplayEngine
 from engine.ClickerEngine import ClickerEngine
+from engine.DisplayEngine import display_dots_on_img, display_msg
 from engine.ImageEngine import scan_image, scan_image2
 from engine.PreImageProcessor import *
 from grabber.ApplicationImageGrabber import ApplicationImageGrabber
@@ -48,18 +50,65 @@ def GetSwiftDarknessTemplateImages():
 
     return imgs
 
+@eel.expose
+def blahblah(param):
+    print(param)
+    main8()
+    print("done")
+
 def main():
+    eel.init('web')
+    eel.start('main.html', block=False)
+
+
+    while True:
+        eel.sleep(10)
+
+
+def main8():
     InventoryService.FilterIventoryBySwiftDarkGear()
 
     imgs = GetSwiftDarknessTemplateImages()
-    items = InventoryService.GetItemsOnScreenFromTemplates(imgs)
 
-    # Get item stats
-    InventoryService.SetItemsInfo(items)
+    atEnd = False
+    count = 0
+    InventoryService.ClickByImageMatch_grind()
 
-    InventoryService.GrindUselessItems(items)
+    while(not atEnd):
+        items = InventoryService.GetItemsOnScreenFromTemplates(imgs)
+
+        # Get item stats
+        InventoryService.SetItemsInfo(items)
+        count = count + InventoryService.ClickUselessItems(items)
+
+        # Draw Markers!
+        applicationGrabber = ApplicationImageGrabber("Nox")
+        img = applicationGrabber.get_image()
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        nonErrorCords = []
+        ErrorCords = []
+        for item in items:
+            if(not item.IsError()):
+                nonErrorCords.append( (item.x,item.y) )
+            else:
+                ErrorCords.append((item.x, item.y))
+
+        #temp = display_dots_on_img(img,nonErrorCords,(0,255,0))
+        #final = display_dots_on_img(temp, ErrorCords, (0, 0, 255))
+        temp = display_msg(img,nonErrorCords, "OK",(0,255,0))
+        final = display_msg(temp, ErrorCords, "Error")
+        #cv2.imshow("final", final)
+        #cv2.waitKey(0)
+
+        atEnd = InventoryService.CheckByImageMatch_end_of_inventory()
+        if(not atEnd): #Scroll Down
+            InventoryService.ScrollToNewRowInInventory()
+
+        #InventoryService.GrindUselessItems(items)
 
         #InventoryService.ClickByImageMatch_yes_grind()
+
+    InventoryService.ClickByImageMatch_start_to_grind()
     # move
 
 def main4():
