@@ -50,23 +50,22 @@ def GetSwiftDarknessTemplateImages():
 
     return imgs
 
-@eel.expose
-def blahblah(param):
-    print(param)
-    main8()
-    print("done")
 
 def main():
     eel.init('web')
     eel.start('main.html', block=False)
 
-
     while True:
         eel.sleep(10)
 
-
-def main8():
+@eel.expose
+def FilterAndClearInventory():
     InventoryService.FilterIventoryBySwiftDarkGear()
+
+    ClearInventory()
+
+@eel.expose
+def ClearInventory():
 
     imgs = GetSwiftDarknessTemplateImages()
 
