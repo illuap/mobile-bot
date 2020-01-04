@@ -1,0 +1,1 @@
+FirstBan should be labeled 1, 2, 3, . . . to dictate ban order. Don't have more then 9 bans or else it will break.

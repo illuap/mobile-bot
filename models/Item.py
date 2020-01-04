@@ -99,6 +99,12 @@ class Item:
             if (dic['Lifesteal'] >= 1): ## Probably don't need this....
                 return True
 
+        if (dic['ATK Spd'] >= 3):
+            return
+
+        if (dic['ATK Spd'] + dic['MP Recovery/Attack'] >= 4):
+            return
+
         if(dic['MP Recovery/Attack'] + dic['ATK Spd'] >= 3): #Niche?
             return True
 
@@ -106,18 +112,43 @@ class Item:
             return True
         if(dic['M.Block'] + dic['M.DEF'] >= 3): #God Tier
             return True
-        if (dic['M.Block'] + dic['M.DEF'] + dic['P.Block'] + dic['P.DEF'] +
-                dic['Block'] + dic['DEF'] + dic['Max HP'] >= 3):  # Tanky
+
+        if(dic['Debuff ACC']>= 3): #PVP
+            return True
+        if(dic['MP Recovery/Sec'] >= 3): #PVP
+            return True
+        if(dic['MP Recovery/Sec'] + dic['Debuff ACC'] + dic['ATK Spd']>= 4): #PVP
+            return True
+
+
+        # Universal Tank
+        if(dic['M.Block'] == 2 and dic['P.Block'] == 2):
+            return True
+        if(dic['M.DEF'] == 2 and dic['P.DEF'] == 2):
+            return True
+        block = (dic['M.Block'] == 1 and dic['P.Block'] == 1)
+        defe = (dic['M.DEF'] == 1 and dic['P.DEF'] == 1)
+        if (   ((block or defe) and dic['Block'] + dic['DEF'] + dic['Max HP'] >= 1) or
+                (dic['Block'] + dic['DEF'] + dic['Max HP'] >= 3)):  # Tanky
+            return True
+
+        if(dic['M.Dodge'] == 2 and dic['P.Dodge'] == 2):
+            return True
+        if(dic['Dodge'] >= 3 or
+            (dic['M.Dodge'] == 1 and dic['P.Dodge'] == 1 and dic['Dodge'] >= 1)): #Niche?
+            return True
+        if(dic['M.Dodge'] >= 3): #Niche?
+            return True
+        if(dic['P.Dodge'] >= 3): #Niche?
             return True
 
         if(dic['Crit Resistance'] + dic['M.Crit Resistance'] + dic['P.Crit Resistance'] >= 4): #Niche?
             return True
         if(dic['CC Resist'] >= 3): #Niche?
             return True
-        if(dic['Dodge'] + dic['M.Dodge'] >= 3): #Niche?
-            return True
-        if(dic['Dodge'] + dic['P.Dodge'] >= 3): #Niche?
-            return True
+
+
+
 
         print("[IsItemUseful] Not useful")
         return False

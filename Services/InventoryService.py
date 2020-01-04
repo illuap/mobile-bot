@@ -99,7 +99,8 @@ def ScrollToNewRowInInventory(width = 1600, height = 900):
     pyautogui.moveTo(width/2, height/2)
     for i in range(0,scroll_times):
         pyautogui.scroll(-10)
-        time.sleep(0.005)
+        time.sleep(0.01)
+    time.sleep(0.01)
 
 def ClickByImageMatch_filter():
     ClickByImageMatch("buttons\\filter.png")

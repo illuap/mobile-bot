@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>KingsRaid Clicker</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
     <script type="application/javascript" src="/eel.js" ></script>
 </head>
@@ -15,11 +15,12 @@
             <h1>Inventory</h1>
             (add a checkbox for gear to grind?)
             <h3>Swift Darkness</h3>
-            <button onclick="eel.ClearInventory()">Clear Inventory</button>
-            <button onclick="eel.FilterAndClearInventory()">Filter + Clear Inventory</button>
+            <button onclick="eel.ClearInventory()" class="btn btn-primary btn-lg btn-block" >Clear Inventory</button>
+            <button onclick="eel.FilterAndClearInventory()" class="btn btn-primary btn-lg btn-block">Filter + Clear Inventory</button>
         </div>
         <div class="col-sm">
-          One of three columns
+            <h1>LOH</h1>
+            <button id="btn-pickban" onclick="eel.LOHrun()" class="btn btn-primary btn-lg btn-block">Pick Ban</button>
         </div>
         <div class="col-sm">
           One of three columns
@@ -28,4 +29,22 @@
     </div>
 
 </body>
+<script>
+    buttonToggle = false;
+    eel.expose(setButtonState); // Expose this function to Python
+    eel.expose(buttonToggle);
+
+    function setButtonState(x) {
+        buttonToggle = x;
+        if(buttonToggle){
+            //$("#btn-pickban").removeClass( "btn-primary" ).addClass( "btn-light" );
+            $("#btn-pickban").prop("disabled", true);
+        }else{
+            //$("#btn-pickban").removeClass( "btn-light" ).addClass( "btn-primary" );
+            $("#btn-pickban").prop("disabled", false);
+        }
+    }
+
+
+</script>
 </html>
