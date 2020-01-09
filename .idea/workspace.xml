@@ -2,14 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9160bdb9-fd75-46f0-ac1d-cef4ad404a3b" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/models/enum/ProcessEnum.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Services/InventoryService.py" beforeDir="false" afterPath="$PROJECT_DIR$/Services/InventoryService.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Services/LOHService.py" beforeDir="false" afterPath="$PROJECT_DIR$/Services/LOHService.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/images/LOH/template/first_pick_me.png" beforeDir="false" afterPath="$PROJECT_DIR$/images/LOH/template/first_pick_me.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/Item.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/Item.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/web/main.html" beforeDir="false" afterPath="$PROJECT_DIR$/web/main.html" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -136,7 +130,7 @@
       <workItem from="1577913695540" duration="861000" />
       <workItem from="1577917463901" duration="617000" />
       <workItem from="1577924993833" duration="30854000" />
-      <workItem from="1578368538333" duration="4968000" />
+      <workItem from="1578368538333" duration="5103000" />
     </task>
     <servers />
   </component>

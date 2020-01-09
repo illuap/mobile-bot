@@ -11,7 +11,7 @@ from cv2 import cv2
 import Logger
 from Services.InventoryService import GetImgsInFolderByNumber
 from grabber.ApplicationImageGrabber import ApplicationImageGrabber
-
+from models.enum.ProcessEnum import Process
 
 dir = '.\images\\LOH\\template\\'
 applicationGrabber = ApplicationImageGrabber("Nox")
