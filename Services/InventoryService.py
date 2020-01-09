@@ -1,4 +1,6 @@
+import os
 import time
+from enum import Enum
 
 import cv2
 import numpy as np
@@ -10,11 +12,24 @@ from engine.PreImageProcessor import GetInventoryOptionTextImg
 from grabber.ApplicationImageGrabber import ApplicationImageGrabber
 from models.Item import Item
 
+#TODO: Add a class for the current inventory state it is running.
+
 dir = '.\images\\template\\'
 applicationGrabber = ApplicationImageGrabber("Nox")
 threshold = 0.92
 
+class GEARSETTYPE(Enum):
+    HERO_SUPPRESSION = "HeroSuppression"
+    SWIFT_DARK = "SwiftDark"
 
+
+def GetGearTemplates(gearSetType):
+    if (gearSetType == GEARSETTYPE.SWIFT_DARK.value):
+        return GetImgsInFolderByNumber('.\images\\Inventory\\SwiftDark\\')
+    elif (gearSetType == GEARSETTYPE.HERO_SUPPRESSION.value):
+        return GetImgsInFolderByNumber('.\images\\Inventory\\HeroSuppression\\')
+    else:
+        return None
 
 #Grabs new SS and Selects the first image it found.
 def GetPosByImageMatch(imageName):
@@ -65,16 +80,22 @@ def ClickByImageMatch(imageName):
     pyautogui.click(pos[0][0], pos[1][0])
     Logger.log("Clicked Image {}.".format(imageName))
 
+def GetImgsInFolderByNumber(dir):
+    filelist = [file for file in os.listdir(dir) if file.endswith('.png')]
+
+    Logger.log("Found files {} in {}.".format(filelist, dir))
+
+    imglist = [cv2.imread(dir + f, 0) for f in filelist]
+    return imglist
 
 
 # ==============================================================
 #                Micro Helper Functions
 # ==============================================================
 
-def InventoryFilterScrollToUnlockedGear():
+def InventoryFilterScrollToUnlockedGear(scroll_times = 36):
     Logger.log("Starting scroll.")
 
-    scroll_times = 36
     for i in range(0,scroll_times):
         pyautogui.scroll(-10)
         time.sleep(0.005)
@@ -107,6 +128,9 @@ def ClickByImageMatch_filter():
 
 def ClickByImageMatch_swift_darkness_filter():
     ClickByImageMatch("buttons\\swift_darkness_filter.png")
+
+def ClickByImageMatch_hero_suppression_filter():
+    ClickByImageMatch("..\\inventory\\hero_suppression_filter.png")
 
 def ClickByImageMatch_unlockedgear_filter():
     ClickByImageMatch("buttons\\unlockedgear_filter.png")
@@ -187,6 +211,25 @@ def FilterIventoryBySwiftDarkGear():
     ScrollToTopOfInventory()
     time.sleep(0.5)
 
+def FilterIventoryByHeroSuppressionGear():
+    time.sleep(0.01)
+    ClickByImageMatch_filter()
+    time.sleep(0.01)
+    pyautogui.move(0, -50)
+    pyautogui.scroll(-20)
+    pyautogui.scroll(-20)
+    time.sleep(0.01)
+    ClickByImageMatch_hero_suppression_filter()
+    time.sleep(0.01)
+    InventoryFilterScrollToUnlockedGear(32)
+    time.sleep(0.1)
+    ClickByImageMatch_unlockedgear_filter()
+    time.sleep(0.02)
+    ClickByImageMatch_ok_filter()
+    time.sleep(0.05)
+    ScrollToTopOfInventory()
+    time.sleep(0.5)
+
 def GetItemsOnScreenFromTemplates(imgs):
     items = []
 
@@ -220,6 +263,7 @@ def GetItemsOnScreenFromTemplates(imgs):
 def SetItemsInfo(items):
     HighlightEachItem(items)
     CheckEachItemStatsUsingCompVision(items)
+
 def GrindUselessItems(items):
     ClickByImageMatch_grind()
 

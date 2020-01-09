@@ -31,9 +31,10 @@ class Item:
     Error_Counter = 0
 
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, gearType = GEARTYPE):
         self.x = x
         self.y = y
+        self.gearType = gearType
         self.stats_img = None
         self.stats_text_arr = []
         self.option_dictionary = dict()

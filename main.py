@@ -24,32 +24,6 @@ from utility import ImageHelper
 from utility.ImageHelper import GetSampleImage
 # Hue range is [0,179], Saturation range is [0,255] and Value range is [0,255].
 
-def GetSwiftDarknessTemplateImages():
-    dir = '.\images\\template\\'
-    template_imgs_filename = [
-        '1.png',
-        '2.png',
-        '3.png',
-        '4.png',
-        '5.png',
-        '6.png',
-        '7.png',
-        '8.png',
-        '9.png',
-        '10.png',
-        '11.png',
-        '12.png',
-        '13.png',
-        '14.png',
-        '15.png',
-        '16.png',
-        '17.png'
-    ]
-    template_imgs = [dir + filename for filename in template_imgs_filename]
-
-    imgs = [cv2.imread(filename, 0) for filename in template_imgs]
-
-    return imgs
 
 
 def main():
@@ -69,16 +43,22 @@ def LOHrun():
     eel.setButtonState(False)
 
 @eel.expose
-def FilterAndClearInventory():
+def FilterAndClearSwiftDarkGear():
     InventoryService.FilterIventoryBySwiftDarkGear()
 
-    ClearInventory()
+    ClearInventory(InventoryService.GEARSETTYPE.SWIFT_DARK)
 
 @eel.expose
-def ClearInventory():
+def FilterAndClearHeroSuppressionGear():
+    InventoryService.FilterIventoryByHeroSuppressionGear()
 
-    imgs = GetSwiftDarknessTemplateImages()
+    ClearInventory(InventoryService.GEARSETTYPE.HERO_SUPPRESSION)
 
+@eel.expose
+def ClearInventory(gearSetType):
+
+    imgs = InventoryService.GetGearTemplates(gearSetType)
+    print(imgs)
     atEnd = False
     count = 0
     InventoryService.ClickByImageMatch_grind()

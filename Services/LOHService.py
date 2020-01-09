@@ -9,7 +9,7 @@ import pyautogui
 from cv2 import cv2
 
 import Logger
-from Services.InventoryService import GetPosByImageMatch
+from Services.InventoryService import GetImgsInFolderByNumber
 from grabber.ApplicationImageGrabber import ApplicationImageGrabber
 
 
@@ -18,19 +18,20 @@ applicationGrabber = ApplicationImageGrabber("Nox")
 
 templateNames = [""]
 
-RETRY_COUNT = 5
+RETRY_COUNT = 3
 RETRY_TIME = 0.5
 
 class LOHState(Enum):
     FIRST_BAN_FLAG = "first_ban.png"
     FIRST_PICK_ME_FLAG = "first_pick_me.png"
+    ENEMY_PICK_FLAG = "enemy_pick.png"
+    QUEUING = "lv.png"
     LAST_BAN_FLAG = "last_ban.png"
     BATTLE_LOADING = "battle_loading.png"
     BATTLING = "battling.png"
+    READY_TO_DUEL_YES = "yes.png"
+    READY_TO_DUEL_PAGE = "ready_to_duel.png"
 
-class Process(Enum):
-    EXIT = 0
-    CONTINUE = 1
 
 
 '''
@@ -46,14 +47,13 @@ threshold = 0.85
 
 class LOHService(object):
 
+    ## Load images into memory
     stateDic = dict()
     heroIconBanList = list()
     heroIconPickList = list()
+    select_ban_template = []
 
     def __init__(self):
-        screenImg = applicationGrabber.get_image()
-        screenImg_post = cv2.cvtColor(cv2.cvtColor(screenImg, cv2.COLOR_BGR2RGB), cv2.COLOR_BGR2GRAY)
-
         for state in (LOHState):
             fileName = state.value
             self.stateDic[fileName] = cv2.imread(dir + fileName, 0)
@@ -62,8 +62,7 @@ class LOHService(object):
         self.heroIconBanList = GetImgsInFolderByNumber(dir + "FirstBans\\")
         self.heroIconPickList = GetImgsInFolderByNumber(dir + "Picks\\")
 
-        #currentState = self.CheckState(screenImg_post)
-        #self.PerformStateActions(currentState, screenImg_post)
+        self.select_ban_template = cv2.imread(dir + "select_ban.png", 0)
 
     def PerformPickBanPhase(self):
         i = 0
@@ -79,8 +78,9 @@ class LOHService(object):
                 if(nextStep == Process.EXIT):
                     return
             else:
-                time.sleep(RETRY_TIME)
                 i += 1
+            time.sleep(RETRY_TIME)
+
         Logger.log("Could not find any states after {} times. Stopping...".format(RETRY_COUNT))
         return
 
@@ -102,8 +102,16 @@ class LOHService(object):
             self.FirstBanHero(screenImg)
         elif (state == LOHState.FIRST_PICK_ME_FLAG.value):
             self.PlayerPick(screenImg)
+        elif (state == LOHState.ENEMY_PICK_FLAG.value or state == LOHState.QUEUING.value):
+            time.sleep(1)
         elif (state == LOHState.LAST_BAN_FLAG.value):
             self.LastBanHero(screenImg)
+        elif (state == LOHState.READY_TO_DUEL_PAGE.value):
+            ClickScreenImgUsingTemplateImg(screenImg, self.stateDic[LOHState.READY_TO_DUEL_PAGE.value])
+            time.sleep(0.5) #wait for animations
+        elif(state == LOHState.READY_TO_DUEL_YES.value):
+            ClickScreenImgUsingTemplateImg(screenImg, self.stateDic[LOHState.READY_TO_DUEL_YES.value])
+            time.sleep(0.5)
         elif (state == LOHState.BATTLE_LOADING.value or state == LOHState.BATTLING.value ):
             Logger.log("Entering Battle Phase.")
             return Process.EXIT
@@ -113,7 +121,7 @@ class LOHService(object):
         Logger.log("Starting to ban first hero")
         FindFirstTemplateAndClick(screenImg, self.heroIconBanList)
         time.sleep(0.2)
-        ClickScreenImgUsingTemplateImg(screenImg, cv2.imread(dir + "select_ban.png", 0))
+        ClickScreenImgUsingTemplateImg(screenImg, self.select_ban_template)
         time.sleep(0.2)
 
     def LastBanHero(self, screenImg):
@@ -126,18 +134,18 @@ class LOHService(object):
         pyautogui.click(abs(width * xScale), abs(height * yScale))
         time.sleep(0.2)
 
-        ClickScreenImgUsingTemplateImg(screenImg, cv2.imread(dir + "select_ban.png", 0))
+        ClickScreenImgUsingTemplateImg(screenImg, self.select_ban_template)
         time.sleep(0.2)
 
     def PlayerPick(self, screenImg):
         Logger.log("Starting to pick hero")
         FindFirstTemplateAndClick(screenImg, self.heroIconPickList)
-        time.sleep(0.05)
-        ClickScreenImgUsingTemplateImg(screenImg, cv2.imread(dir + "select_ban.png", 0))
         time.sleep(0.2)
+        ClickScreenImgUsingTemplateImg(screenImg, self.select_ban_template)
+        time.sleep(0.5)
         FindFirstTemplateAndClick(screenImg, self.heroIconBanList)
-        time.sleep(0.05)
-        ClickScreenImgUsingTemplateImg(screenImg, cv2.imread(dir + "select_ban.png", 0))
+        time.sleep(0.2)
+        ClickScreenImgUsingTemplateImg(screenImg, self.select_ban_template)
         time.sleep(0.2)
 
 def FindFirstTemplateAndClick(screenImg, templateImgList):
@@ -150,15 +158,6 @@ def FindFirstTemplateAndClick(screenImg, templateImgList):
     Logger.log("Failed to find any template imgs.")
     return
 
-def GetImgsInFolderByNumber(dir):
-    filelist = [file for file in os.listdir(dir) if file.endswith('.png')]
-
-    Logger.log("Found files {} in {}.".format(filelist, dir))
-
-    imglist = [cv2.imread(dir + f, 0) for f in filelist]
-    temp = cv2.imread(dir + filelist[0], 0)
-    return imglist
-
 def ClickScreenImgUsingTemplateImg(screenImg, templateImg, randomOffset = 10):
     res = cv2.matchTemplate(screenImg, templateImg, cv2.TM_CCOEFF_NORMED)
     loc = np.where(res >= threshold)
@@ -169,19 +168,8 @@ def ClickScreenImgUsingTemplateImg(screenImg, templateImg, randomOffset = 10):
         return False
 
     #Select the first point.
-    pyautogui.click(pos[0][0] + random.randint(0,randomOffset), pos[1][0] + random.randint(0,randomOffset))
-    Logger.log("Clicked Image around {},{}.".format(pos[0][0], pos[1][0]))
+    randX = pos[0][0] + random.randint(0,randomOffset)
+    randy = pos[1][0] + random.randint(0,randomOffset)
+    pyautogui.click(randX, randy)
+    Logger.log("Clicked Image around {},{}.".format(randX, randy))
     return True
-
-# def CheckScreenImgUsingTemplateImg(screenImg, templateImg):
-#     res = cv2.matchTemplate(screenImg, templateImg, cv2.TM_CCOEFF_NORMED)
-#     loc = np.where(res >= threshold)
-#     pos = loc[::-1]
-#
-#     if (not len(pos[0]) > 0):
-#         Logger.log("Failed to find template Image")
-#         return False
-#
-#     Logger.log("Found Image at {},{}.".format(pos[0][0], pos[1][0]))
-#     return True
-
